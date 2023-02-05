@@ -23,7 +23,46 @@ public class Problem3 {
         //TODO convert each value to positive
         //set the result to the proper index of the output array
         //hint: don't forget to handle the data types properly
-        
+
+        /* mhk42, 2/3/23, the code loops through each element in the input array.
+         * It checks the type of the current element, checks if its less than 0
+         * and performs a type-specific operation to convert it to a positive value
+         * using Math.abs() and adds it to output.
+         * For string elements, it converts the string to an integer.
+         * 
+         * 
+         */
+        for(int i=0; i < arr.length; i++)
+        {
+        if(arr[i] instanceof Integer)
+         {
+            int x = (int) arr[i];
+                if(x < 0)
+                {
+                    x = Math.abs(x);
+                }   
+            output[i] = x;
+        }
+        else if(arr[i] instanceof Double)
+        {
+            double x = (double) arr[i];
+                if(x < 0)
+                {
+                    x = Math.abs(x);
+                }
+            output[i] = x;
+        }
+        else if(arr[i] instanceof String)
+        {
+            int x = Integer.parseInt((String) arr[i]);
+                if(x < 0)
+                {
+                    x = Math.abs(x);
+                }
+            output[i] = x;
+        }
+}
+
         //end edit section
 
         StringBuilder sb = new StringBuilder();

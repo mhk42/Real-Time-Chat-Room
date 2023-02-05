@@ -20,9 +20,19 @@ public class Problem2 {
         double total = 0;
         String totalOutput = "";
         //TODO add/edit code here
+
+        /* mhk42, 2/23/2023, the code loops through the input array arr and adds each element to the total.
+         * It rounds the value of total to two decimal places and stores it in total in line 33.
+         * Lastly, it converts the double value of total to a string and formats it to have 2 decimal places.
+         */
+        for(int i = 0; i < arr.length; i++)
+        {
+            total += arr[i];
+        }
        
+        total = Math.round(total * 100.0) / 100.0;
         //set the double to a string variable
-        totalOutput = total+"";
+        totalOutput = String.format("%.2f", total);
         //end add/edit section
         System.out.println("Total is " + totalOutput);
         System.out.println("End process");

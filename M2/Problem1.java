@@ -19,7 +19,35 @@ public class Problem1 {
         System.out.println("Processing Array:" + Arrays.toString(arr));
         System.out.println("Odds output:");
         //TODO add/edit code here
-        
+
+        /* mhk42, 2/23/23, the code loops through the array arr and checks if each element is odd or not.
+        /* If an element is odd, it is printed to the console. If an element is even, it continues to the next element.
+         * The code is also checking if the current iteration index i is not the last index in the array arr. If it is not, a variable j is declared and set to i + 1. 
+         * A while loop is then run, where j is incremented until either j reaches the end of the array arr or the current value at arr[j] is even. 
+         * If j has not reached the end of the array, a comma is printed. This is to print the odd numbers like an array.
+         */
+        System.out.print("[");
+        for(int i = 0; i < arr.length; i++)
+        {
+            if(arr[i] % 2 != 0)
+            {
+                System.out.print(arr[i]);
+                if(i != arr.length - 1)
+                {
+                    int j;
+                    j = i + 1;
+                    while(j < arr.length && arr[j] % 2 == 0)
+                    {
+                        j++;
+                    }
+                    if(j < arr.length)
+                    {
+                        System.out.print(", ");
+                    }
+                }
+            }
+        }
+        System.out.print("]");
         //end add/edit section
         System.out.println();
         System.out.println("End process");
