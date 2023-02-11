@@ -130,6 +130,20 @@ public class NumberGuesser4 {
             pickNewRandom = true;
         } else {
             System.out.println("That's wrong");
+
+            /*mhk42, 2/10/2023, the code checks if the number is less or greater than the user's guess when the user guesses wrong.
+             * if the number is lower than the guess, then the code will tell that the correct number is lower
+             * If the number is higher than the guess, then the code will tell that the corect number is higher.
+             * This is to help the user guess the right number.
+             */
+            if (number < guess) 
+            {
+                System.out.println("The correct number is lower");
+            } else if (number > guess) 
+            {
+                System.out.println("The correct number is higher");
+            }
+
             strikes++;
             if (strikes >= maxStrikes) {
                 lose();
@@ -155,6 +169,39 @@ public class NumberGuesser4 {
             System.out.println("Welcome to NumberGuesser4.0");
             System.out.println("To exit, type the word 'quit'.");
             loadState();
+            
+
+            /* mhk42, 2/10/2023, the code asks the user for the difficulty as a number.
+             * The entered value is then compared to 1, 2, 3, and sets the max lives depending on the 
+             * difficulty you chose. If the entered value is not 1,2,or 3 then the default difficulty is used.
+             */
+            System.out.println("What difficulty do you want to play at? Type 1 for Easy, 2 for Medium, 3 for Hard");
+            String userDiff = input.nextLine();
+            
+            try {
+                int difficulty = Integer.parseInt(userDiff);
+                
+                if(difficulty == 1)
+                {
+                    maxStrikes = 12;
+                }
+                else if(difficulty == 2)
+                {
+                    maxStrikes = 6;
+                }
+                else if(difficulty == 3)
+                {
+                    maxStrikes = 3;
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            } catch (Exception e) {
+                System.out.println("The choice you chose is invalid. Difficulty set to easy");
+                maxStrikes = 10;
+            }
+     
             do {
                 if (pickNewRandom) {
                     generateNewNumber(level);
