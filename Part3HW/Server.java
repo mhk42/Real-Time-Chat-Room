@@ -83,8 +83,48 @@ public class Server {
             }
             return true;
         }
+        //mhk42, 2/20/23, the code checks if the user has entered the message "flip"
+        //If so, then the program generetes a random number between 1 and 2 and
+        //uses if commands to determine whether it's heads or tails depending on the number and broadcasts it. 
+
+        else if (message.equalsIgnoreCase("flip")) {
+            int num = (int) (Math.random() * 2) + 1;
+            String result;
+            if (num == 1) {
+                result = "heads";
+            } else {
+                result = "tails";
+            }
+            broadcast("Flipped a coin and got " + result, clientId);
+            return true;
+        }
+
+
+        //mhk42, 2/20/23, the code checks if the user has started a message with the word "shuffle"
+        //if so, then it uses an
+
+
+        if (message.startsWith("shuffle")) {
+            String msg = message.substring(7); 
+            String shuffledMsg = shuffleMessage(msg); 
+            broadcast(shuffledMsg, clientId); 
+            return true;
+        }
+
         return false;
     }
+    private String shuffleMessage(String str) {
+        char[] charArray = str.toCharArray();
+        for (int i = 0; i < charArray.length; i++) {
+            int randomIndex = (int) (Math.random() * charArray.length);
+            char temp = charArray[i];
+            charArray[i] = charArray[randomIndex];
+            charArray[randomIndex] = temp;
+        }
+        return new String(charArray);
+    }
+
+
     public static void main(String[] args) {
         System.out.println("Starting Server");
         Server server = new Server();
