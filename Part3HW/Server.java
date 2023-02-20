@@ -101,7 +101,9 @@ public class Server {
 
 
         //mhk42, 2/20/23, the code checks if the user has started a message with the word "shuffle"
-        //if so, then it uses an
+        //if so, then it uses a method to take the word(s) after the word shuffle and
+        //converts them into a character Array to shuffle them, then reconverts them to a string
+        //and returns it
 
 
         if (message.startsWith("shuffle")) {
