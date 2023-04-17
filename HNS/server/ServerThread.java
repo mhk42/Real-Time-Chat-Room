@@ -12,6 +12,9 @@ import HNS.common.Payload;
 import HNS.common.PayloadType;
 import HNS.common.RoomResultPayload;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A server-side representation of a single client
  */
@@ -25,6 +28,8 @@ public class ServerThread extends Thread {
     private Room currentRoom;
     private static Logger logger = Logger.getLogger(ServerThread.class.getName());
     private long myClientId;
+
+
 
     public void setClientId(long id) {
         myClientId = id;
@@ -43,6 +48,8 @@ public class ServerThread extends Thread {
         // get communication channels to single client
         this.client = myClient;
         this.currentRoom = room;
+
+        
 
     }
 
@@ -233,4 +240,28 @@ public class ServerThread extends Thread {
         }
         logger.info("Thread cleanup() complete");
     }
+
+
+
+
+
+    private List<String> muteList = new ArrayList<>();
+
+    public void addMute(String name)
+    {
+        muteList.add(name);
+    }
+
+    public void removeMute(String name)
+    {
+        muteList.remove(name);
+    }
+
+    public boolean isMuted(String muted) {
+        return muteList.contains(muted);
+    }
+
+
+
+
 }
