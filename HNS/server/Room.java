@@ -22,8 +22,8 @@ public class Room implements AutoCloseable {
     private final static String DISCONNECT = "disconnect";
     private final static String LOGOUT = "logout";
     private final static String LOGOFF = "logoff";
-    private final static String FLIP = "flip";
-    private final static String ROLL = "roll";
+    //private final static String FLIP = "flip";
+    //private final static String ROLL = "roll";
     private static Logger logger = Logger.getLogger(Room.class.getName());
 
     public Room(String name) {
@@ -134,13 +134,13 @@ public class Room implements AutoCloseable {
                         break;
 
                     //mhk42 3/30/2023, included a new case for the flip command which calls the flipCommmand method.
-                    case FLIP:
-                        Room.flipCommand(client);
-                        break;
+                    //case FLIP:
+                     //   Room.flipCommand(client);
+                      //  break;
 
                     //mhk42 3/30/2023, new case for ROLL command, here it checks whether or not the command contains
                     // the letter d, then calls the methods respectively
-                    case ROLL:
+                   /*  case ROLL:
                         String rollValue;
                         if (comm2[1].contains("d")) 
                         {
@@ -154,7 +154,7 @@ public class Room implements AutoCloseable {
                             rollValue = comm2[1];
                             defaultRollCommand(client, rollValue);
                             break;
-                        }
+                        }*/
                         
                     default:
                         wasCommand = false;
@@ -200,10 +200,9 @@ public class Room implements AutoCloseable {
         room.removeClient(client);
     }
 
-    //mhk42 3/30/2023 Using math.random, it generetes a number between 0 and 1, 0 for heads, 1 for tails
-    // the result is then put into the finalResult string, then the Server displays the username who used the command
-    // and prints whether or not they rolled heads or tails
-    protected static void flipCommand(ServerThread client)
+    //mhk42 4/12/2023 Using math.random, it generetes a number between 0 and 1, 0 for heads, 1 for tails
+    // the result is then put into the finalResult string and returns it.
+    protected static String flipCommand(String val)
     {
         int flip = (int)Math.random() * 2;
         String result;
@@ -216,13 +215,44 @@ public class Room implements AutoCloseable {
         {
             result ="tails";
         }
-        String finalResult = client.getClientName() + " flipped a coin and got " + result;
-        client.sendMessage(Constants.DEFAULT_CLIENT_ID, String.format(finalResult));
+        String finalResult = " flipped a coin and got " + result;
+        
+        return finalResult;
     }
+
+
+    //mhk42 4/12/2023, the "/roll" is removed from the message
+    //then two cases are created for the two formats, the value is put into result, and then into the finalResult
+    protected static String finalRollCommand(String message) 
+    {
+        String rollValue = message.substring(6).trim();
+        int result = 0;
+        String finalResult;
+    
+        if (rollValue.contains("d")) 
+        {
+            String[] split = rollValue.split("d");
+            int mininum = Integer.parseInt(split[0]);
+            int maximumNumber = Integer.parseInt(split[1]);
+            for (int i = 0; i < mininum; i++) {
+                result += (int)(Math.random() * maximumNumber) + 1;
+            }
+        } 
+        else
+        {
+            int maximumNumber = Integer.parseInt(rollValue);
+            result = (int) (Math.random() * maximumNumber) + 1;
+        }
+    
+        finalResult = " rolled and got " + result;
+        return finalResult;
+    }
+
+
 
     //mhk42 3/30/2023, since the rollValue is a string, it will convert it to an int then use math.random
     // to generate the number the user asked for, then the Server displays who rolled and what number they got.
-    protected static void defaultRollCommand(ServerThread client, String rollValue)
+   /* protected static void defaultRollCommand(ServerThread client, String rollValue)
     {
         int result = 0;
         String finalResult;
@@ -234,13 +264,13 @@ public class Room implements AutoCloseable {
         finalResult = client.getClientName() + " rolled and got " + result;
 
         client.sendMessage(Constants.DEFAULT_CLIENT_ID, String.format(finalResult));
-    }
+    } */
 
     
     //mhk42 3/30/2023, the specialrollcommand is when it includes the letter "d",
     // the letter d is split, and the first and last ints are used to determine the roll value
     // The server then prints, who rolled it and what number they got
-    protected static void specialRollCommand(ServerThread client, String rollValue)
+  /*  protected static void specialRollCommand(ServerThread client, String rollValue)
     {
         int result = 0;
         String finalResult;
@@ -258,12 +288,12 @@ public class Room implements AutoCloseable {
         finalResult = client.getClientName() + " rolled and got " + result;
 
         client.sendMessage(Constants.DEFAULT_CLIENT_ID, String.format(finalResult));
-    }
+    }*/
 
 
     //mhk42 3/31/2023, depending on the special tags, the replaceAll will change 
     //the text between the tags to the corresponding HTML tags that represent the desired style
-    public static String changeStyle(String message) {
+   /*  public static String changeStyle(String message) {
         
         message = message.replaceAll("&b(.*?)&b", "<b>$1</b>");
         
@@ -278,7 +308,7 @@ public class Room implements AutoCloseable {
         message = message.replaceAll("&G(.*?)&G", "<font color='green'>$1</font>");
     
         return message;
-    }
+    }*/
     
     
 
@@ -292,7 +322,11 @@ public class Room implements AutoCloseable {
      * @param sender  The client sending the message
      * @param message The message to broadcast inside the room
      */
-    protected synchronized void sendMessage(ServerThread sender, String message) {
+
+
+     //mhk42 4/12/23, sendMessage is modified to detect if the code starts with either
+     //"flip" or "roll" and calls the methods associated with them.
+     protected synchronized void sendMessage(ServerThread sender, String message) {
         if (!isRunning) {
             return;
         }
@@ -303,24 +337,96 @@ public class Room implements AutoCloseable {
         }
         long from = sender == null ? Constants.DEFAULT_CLIENT_ID : sender.getClientId();
         Iterator<ServerThread> iter = clients.iterator();
-
-       
-        //mhk42 3/31/2023, here new String changedText is created and set to equal message
-        //then it goes through the method changeStyle, and the new message will include the 
-        //desired style
-
         String changedText = message;
+        
 
-        message = changeStyle(changedText);;
 
+        //mhk42, 4/13/23 checks if the message with "@" symbol. If it does, it takes the reciever's name and message 
+        //and then sends the message only to the mentioned user user.
+        if (message.startsWith("@")) {
 
+            int i = message.indexOf(" ");
+            String receiver = message.substring(1, i);
+            String secretMessage = message.substring(i + 1);
+                for (int j = 0; j < clients.size(); j++) {
+                ServerThread client = clients.get(j);
+                if (client.getClientName().equals(receiver)) {
+                    boolean sent = client.sendMessage(from, secretMessage);
+                    if (!sent) 
+                    {
+                         handleDisconnect(iter, client);
+                    }
+                    break;
+                    }
+                }
+        
+                if (sender != null) {
+                    sender.sendMessage(from, secretMessage);
+                }
+                return; 
+        }
+
+        //mhk42 4/16/2023, A user can mute or unmute another user.
+        //Users' messages who have been muted by a specific user will not be shown to the specifc user ONLY.
+        //All of the other clients can see the messages.
+        else if (message.startsWith("/mute")) {
+            int i = message.indexOf(" ");
+            String mutedUser = message.substring(i + 1);
+            for (int j = 0; j < clients.size(); j++) {
+                ServerThread client = clients.get(j);
+                if (client.getClientName().equals(sender.getClientName())) {
+                    client.addMute(mutedUser);
+                    for (int k = 0; k < clients.size(); k++) {
+                         ServerThread mutedClient = clients.get(k);
+                        if (mutedClient.getClientName().equals(mutedUser)) {
+                            mutedClient.sendMessage(Constants.DEFAULT_CLIENT_ID, String.format("%s muted you", sender.getClientName()));
+                            break;
+                        }
+                    }
+                    return;
+                    }
+                }
+        }
+        else if (message.startsWith("/unmute"))
+         {
+            int i = message.indexOf(" ");
+            String unmutedUser = message.substring(i + 1);
+            for (int j = 0; j < clients.size(); j++) {
+                ServerThread client = clients.get(j);
+                if (client.getClientName().equals(sender.getClientName())) {
+                    client.removeMute(unmutedUser);
+                    for (int k = 0; k < clients.size(); k++) {
+                        ServerThread unmutedClient = clients.get(k);
+                        if (unmutedClient.getClientName().equals(unmutedUser)) {
+                            unmutedClient.sendMessage(Constants.DEFAULT_CLIENT_ID, String.format("%s unmuted you", sender.getClientName()));
+                            break;
+                        }
+                    }
+                    return;
+                    }
+                }
+        }
+
+        else if(message.startsWith("/flip")) 
+        {
+            changedText = message;
+            message = flipCommand(changedText);
+        } else if(message.startsWith("/roll")) 
+        {
+            changedText = message;
+            message = finalRollCommand(changedText);
+        }
         while (iter.hasNext()) {
             ServerThread client = iter.next();
+            if (sender != null && client.isMuted(sender.getClientName())) {
+                continue;
+            }
             boolean messageSent = client.sendMessage(from, message);
             if (!messageSent) {
                 handleDisconnect(iter, client);
             }
         }
+
     }
 
     protected synchronized void sendConnectionStatus(ServerThread sender, boolean isConnected) {
