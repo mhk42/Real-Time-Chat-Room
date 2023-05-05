@@ -7,6 +7,15 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import HNS.common.Constants;
+//import javax.swing.JFileChooser;
+//import java.io.BufferedWriter;
+
+
+
+//import java.io.File;
+//import java.io.FileWriter;
+//import java.io.IOException;
+
 
 public class Room implements AutoCloseable {
     // server is a singleton now so we don't need this
@@ -202,24 +211,11 @@ public class Room implements AutoCloseable {
 
     //mhk42 4/12/2023 Using math.random, it generetes a number between 0 and 1, 0 for heads, 1 for tails
     // the result is then put into the finalResult string and returns it.
-    protected static String flipCommand(String val)
-    {
-        int flip = (int)Math.random() * 2;
-        String result;
-        if(flip == 0)
-        {
-            result = "heads";
-
-        }
-        else
-        {
-            result ="tails";
-        }
-        String finalResult = " flipped a coin and got " + result;
-        
-        return finalResult;
+    protected static String flipCommand(String val) {
+        int flip = (int) (Math.random() * 2);
+        String result = flip == 0 ? "heads" : "tails";
+        return " flipped a coin and got " + result;
     }
-
 
     //mhk42 4/12/2023, the "/roll" is removed from the message
     //then two cases are created for the two formats, the value is put into result, and then into the finalResult
@@ -324,6 +320,10 @@ public class Room implements AutoCloseable {
      */
 
 
+    //mhk42 4/22/23, new list that will store message history.
+     List<String> messageHistory = new ArrayList<>();
+
+
      //mhk42 4/12/23, sendMessage is modified to detect if the code starts with either
      //"flip" or "roll" and calls the methods associated with them.
      protected synchronized void sendMessage(ServerThread sender, String message) {
@@ -367,8 +367,8 @@ public class Room implements AutoCloseable {
         }
 
         //mhk42 4/16/2023, A user can mute or unmute another user.
-        //Users' messages who have been muted by a specific user will not be shown to the specifc user ONLY.
-        //All of the other clients can see the messages.
+        //Users' messages who have been muted by a specific user will not be shown to the specifc user ONLY. All of the other clients can see the messages. 
+        //4/27/23, the user who becomes muted/unmuted will be notified by the server of how muted/unmuted them
         else if (message.startsWith("/mute")) {
             int i = message.indexOf(" ");
             String mutedUser = message.substring(i + 1);
@@ -378,7 +378,9 @@ public class Room implements AutoCloseable {
                     client.addMute(mutedUser);
                     for (int k = 0; k < clients.size(); k++) {
                          ServerThread mutedClient = clients.get(k);
+                         //checks first if the name watches
                         if (mutedClient.getClientName().equals(mutedUser)) {
+                            //Sends message to the user that another client has muted them
                             mutedClient.sendMessage(Constants.DEFAULT_CLIENT_ID, String.format("%s muted you", sender.getClientName()));
                             break;
                         }
@@ -397,7 +399,9 @@ public class Room implements AutoCloseable {
                     client.removeMute(unmutedUser);
                     for (int k = 0; k < clients.size(); k++) {
                         ServerThread unmutedClient = clients.get(k);
+                        //checks first if the name matches
                         if (unmutedClient.getClientName().equals(unmutedUser)) {
+                            //Sends message to the muted user that the user who previously muted them has unmuted them
                             unmutedClient.sendMessage(Constants.DEFAULT_CLIENT_ID, String.format("%s unmuted you", sender.getClientName()));
                             break;
                         }
@@ -407,6 +411,27 @@ public class Room implements AutoCloseable {
                 }
         }
 
+
+        //mhk42 4/22/2023, client can type /download command which opens a file chooser
+        //the user can select any place on the computer to save the chat history as .txt
+        /*else if(message.startsWith("/download")) {
+            JFileChooser selectFile = new JFileChooser();
+            int select = selectFile.showSaveDialog(null);
+            if (select == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = selectFile.getSelectedFile();
+                fileToSave = new File(fileToSave.getAbsolutePath() + ".html");
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileToSave))) {
+                    for (String saveMessage : messageHistory) {
+                        writer.write("<p>" + saveMessage + "</p>");
+                        writer.write(System.lineSeparator()); // add this line to write a newline after each message
+                    }
+                    sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "Saved message history");
+                } catch (IOException e) {
+                    sender.sendMessage(Constants.DEFAULT_CLIENT_ID, e.getMessage());
+                }
+            }
+            return;
+        }*/
         else if(message.startsWith("/flip")) 
         {
             changedText = message;
@@ -416,6 +441,28 @@ public class Room implements AutoCloseable {
             changedText = message;
             message = finalRollCommand(changedText);
         }
+
+
+        //mhk42 4/22/23, new string is created that stores the client name along with a message
+        //this message is then added to a list for future downloading
+        String addMessage = sender.getClientName() + ":" + message;
+
+        addMessage = addMessage.replaceAll("&b(.*?)&b", "<b>$1</b>");
+        
+        addMessage = addMessage.replaceAll("&I(.*?)&I", "<i>$1</i>");
+       
+        addMessage = addMessage.replaceAll("&u(.*?)&u", "<u>$1</u>");
+        
+        addMessage = addMessage.replaceAll("&R(.*?)&R", "<font color='red'>$1</font>");
+        
+        addMessage =addMessage.replaceAll("&B(.*?)&B", "<font color='blue'>$1</font>");
+        
+        addMessage = addMessage.replaceAll("&G(.*?)&G", "<font color='green'>$1</font>");
+    
+
+        messageHistory.add(addMessage);
+
+
         while (iter.hasNext()) {
             ServerThread client = iter.next();
             if (sender != null && client.isMuted(sender.getClientName())) {

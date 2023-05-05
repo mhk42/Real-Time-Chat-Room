@@ -4,6 +4,8 @@ import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentAdapter;
@@ -12,7 +14,12 @@ import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +27,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -31,12 +39,16 @@ import HNS.client.Client;
 import HNS.client.ClientUtils;
 import HNS.client.ICardControls;
 
+
 public class ChatPanel extends JPanel {
     private static Logger logger = Logger.getLogger(ChatPanel.class.getName());
     private JPanel chatArea = null;
     private JPanel wrapper = null;
     private UserListPanel userListPanel;
     private Dimension lastSize = new Dimension();
+
+
+    List<String> messageHistory = new ArrayList<>();
 
     public ChatPanel(ICardControls controls) {
         super(new BorderLayout(10, 10));
@@ -45,7 +57,7 @@ public class ChatPanel extends JPanel {
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setAlignmentY(Component.BOTTOM_ALIGNMENT);
-
+        
         // wraps a viewport to provide scroll capabilities
         JScrollPane scroll = new JScrollPane(content);
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -54,14 +66,42 @@ public class ChatPanel extends JPanel {
         // no need to add content specifically because scroll wraps it
         wrapper.add(scroll);
         this.add(wrapper, BorderLayout.CENTER);
-
+        
         JPanel input = new JPanel();
         input.setLayout(new BoxLayout(input, BoxLayout.X_AXIS));
         JTextField textValue = new JTextField();
         input.add(textValue);
         JButton button = new JButton("Send");
+        input.add(button);
+        JButton downloadButton = new JButton("Download");
 
+        downloadButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Create a new JFileChooser to allow the user to select a file to save the chat history in HTML
+                JFileChooser selectFile = new JFileChooser();
+                int select = selectFile.showSaveDialog(null);
+                if (select == JFileChooser.APPROVE_OPTION) {
+                    // If the user selected a file, create a new file with the .html extension and write the chat history to it
+                    File fileToSave = selectFile.getSelectedFile();
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".html");
+                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileToSave))) {
+                        for (String saveMessage : messageHistory) {
+                            // Write each message in HTML format
+                            writer.write("<p>" + saveMessage + "</p>");
+                            writer.write(System.lineSeparator()); // add this line to write a newline after each message
+                        }
 
+                    } catch (IOException ex) {
+                        ex.getMessage();
+                    }
+                }
+            }
+        });
+        
+        input.add(downloadButton);
+        
+    
         
         ////mhk42 4/12/23, When the user presses the enter key while typing in textValue. 
         //it will automatically click on the send button.
@@ -237,7 +277,7 @@ public class ChatPanel extends JPanel {
         textContainer.setContentType("text/html");
 
 
-        
+       
 
 
 
@@ -258,8 +298,8 @@ public class ChatPanel extends JPanel {
             textContainer.setText(changeStyle(text));
         }
 
-
-
+        
+        messageHistory.add(changeStyle(text));
 
 
     

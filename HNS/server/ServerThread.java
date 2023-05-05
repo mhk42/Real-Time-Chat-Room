@@ -15,6 +15,14 @@ import HNS.common.RoomResultPayload;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+
+
+
+
 /**
  * A server-side representation of a single client
  */
@@ -122,6 +130,20 @@ public class ServerThread extends Thread {
         p.setPayloadType(PayloadType.RESET_USER_LIST);
         return send(p);
     }
+    
+
+    //
+    public boolean sendLastUser(long clientId) {
+        Payload p = new Payload();
+        p.setPayloadType(PayloadType.LAST_USER);
+        p.setClientId(clientId);
+        return send(p);
+    }
+
+
+
+
+
 
     public boolean sendClientId(long id) {
         Payload p = new Payload();
@@ -166,6 +188,9 @@ public class ServerThread extends Thread {
             return true;// true since it's likely pending being opened
         }
     }
+
+
+    
 
     // end send methods
     @Override
@@ -241,27 +266,68 @@ public class ServerThread extends Thread {
         logger.info("Thread cleanup() complete");
     }
 
+    public List<String> muteList = new ArrayList<>();
 
 
+    //mhk42,4/26/23 manages a list of muted users stored in a file, 
+    //methods add and remove users and check if a given user is muted
+    private String filePath = "C:\\Data\\muted_users_list.txt";
 
+    //loads muted list in ServerThread
+    public ServerThread() {
+        loadUsers();
 
-    private List<String> muteList = new ArrayList<>();
-
-    public void addMute(String name)
-    {
-        muteList.add(name);
     }
 
-    public void removeMute(String name)
-    {
+    public void addMute(String name) {
+        muteList.add(name);
+        saveUsers();
+
+    }
+
+    public void removeMute(String name) {
         muteList.remove(name);
+        saveUsers();
     }
 
     public boolean isMuted(String muted) {
         return muteList.contains(muted);
     }
 
+    public List<String> getMuteList() {
+        return muteList;
+    }
+
+    //load muted list
+    private void loadUsers() {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            String i;
+            while ((i = reader.readLine()) != null) {
+                muteList.add(i);
+            }
+            reader.close();
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "An Error has occurred", e);
+        }
+    }
+
+    //save/store muted list
+    private void saveUsers() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+            for (String i : muteList) {
+                writer.write(i + "\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "An Error has occurred", e);
+        }
+    }
 
 
+    public List<String> getMyList() {
+        return muteList;
+    }
 
 }

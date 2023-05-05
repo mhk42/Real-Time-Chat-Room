@@ -153,6 +153,25 @@ public enum Client {
         out.writeObject(p);
     }
 
+ 
+
+    //
+
+    public void sendMutedUser(long clientId) throws IOException {
+        Payload p = new Payload();
+        p.setPayloadType(PayloadType.MUTED);
+        p.setClientId(clientId);
+        out.writeObject(p);
+    }
+
+
+
+
+
+
+
+
+
     private void listenForServerPayload() {
         fromServerThread = new Thread() {
             @Override
